@@ -1,0 +1,7 @@
+name: Wake Up
+description: Imposes tight restrictions on saving and resting, requiring the use of a bed.
+
+save_name: "[zZz] Wake up"
+wake_up: "You feel yourself stir as the veil of sleep begins to slip.\nThis has all been a bad dream, a terrible premonition of one possible outcome.\nWith a jolt, you cast off the nightmare and wake up.\n\nWake up!"
+save_failed: You groggily awaken from restless sleep, feeling no better than before...
+startup_message: "This save seems to have been made before enabling \"Wake Up\".\nTo prevent accidental loss of data, your autosaves and quicksaves will not be deleted until you next rest in a bed.\n\nOther existing saves will not be deleted!"

@@ -1,0 +1,3 @@
+MENU:scripts/WakeUp/menu.lua
+GLOBAL:scripts/WakeUp/global.lua
+PLAYER:scripts/WakeUp/player.lua
