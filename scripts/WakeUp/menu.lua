@@ -18,7 +18,7 @@ local function cleanSaves()
 				latestAutoSave = info
 				saveName = save
 			elseif latestAutoSave.creationTime < info.creationTime then
-				menu.deleteGame(saveDir, latestSave)
+				menu.deleteGame(saveDir, saveName)
 
 				latestAutoSave = info
 				saveName = save

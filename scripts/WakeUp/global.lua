@@ -64,14 +64,10 @@ local function activateBed(object, actor)
 	local scrName = (types.Activator.record(object.recordId).mwscript or ''):lower()
 	local bedScripts = { bed_standard = true, chargenbed = true }
 
-	if bedScripts[scrName] then
-		if canUseBed(object, actor) == false then
-			actor:sendEvent("wu_showMessage", core.getGMST(noSleepGMST))
+	if bedScripts[scrName] and canUseBed(object, actor) == false then
+		actor:sendEvent("wu_showMessage", core.getGMST(noSleepGMST))
 
-			return false
-		end
-
-		actor:sendEvent("wu_inBed")
+		return false
 	end
 end
 

@@ -27,41 +27,37 @@ local function UiModeChanged(data)
 			pendingMenuOpen = false
 			pendingMenuClose = true
 		end
-	end
 
-	if data.oldMode == 'MainMenu' and pendingMenuClose then
+	elseif data.oldMode == 'MainMenu' and pendingMenuClose then
 		pendingMenuClose = false
 		core.sendGlobalEvent('wu_setCharGen', { value = -1 })
 		types.Player.sendMenuEvent(self, 'wu_cleanSaves')
-	end
-
-	if inBed then
-		if data.newMode == 'Rest' and not data.oldMode then
-			startHealthCurrent = dynamicHealth.current
-			restStart = core.getGameTime()
-		end
-
-		if not data.newMode and data.oldMode == 'Rest' then
-			local newHealth = dynamicHealth.current
-			local newHealthMax = dynamicHealth.base + dynamicHealth.modifier
-
-			if charGenFinished and (restStart < core.getGameTime()) then
-				if (newHealth == newHealthMax or newHealth >= startHealthCurrent) then
-					if not hasSavedInBed then
-						hasSavedInBed = true
-					end
-
-					types.Player.sendMenuEvent(self, 'wu_doSave')
-				else
-					ui.showMessage(L('save_failed'), { showInDialogue = false} )
-				end
-			end
-
-			inBed = false
-		end
 
 	elseif data.newMode == 'Rest' and not data.oldMode then
-		ui.showMessage(core.getGMST(cannotRestGMST), { showInDialogue = false} )
+		if data.arg then
+			inBed = true
+			restStart = core.getGameTime()
+		else
+			ui.showMessage(core.getGMST(cannotRestGMST), { showInDialogue = false} )
+		end
+
+	elseif inBed and not data.newMode and data.oldMode == 'Rest' then
+		local newHealth = dynamicHealth.current
+		local newHealthMax = dynamicHealth.base + dynamicHealth.modifier
+
+		if charGenFinished and (restStart < core.getGameTime()) then
+			if (newHealth == newHealthMax or newHealth >= startHealthCurrent) then
+				if not hasSavedInBed then
+					hasSavedInBed = true
+				end
+
+				types.Player.sendMenuEvent(self, 'wu_doSave')
+			else
+				ui.showMessage(L('save_failed'), { showInDialogue = false} )
+			end
+		end
+
+		inBed = false
 	end
 end
 
@@ -141,11 +137,8 @@ return {
 		UiModeChanged = UiModeChanged,
 		wu_showMessage = wu_showMessage,
 		wu_initCharGenCheck = charGenCheck,
-		wu_newGame = function ()
+		wu_newGame = function()
 			newGame = true
-		end,
-		wu_inBed = function()
-			inBed = true
 		end,
 		Died = function()
 			iUI.showInteractiveMessage(L('wake_up'))
