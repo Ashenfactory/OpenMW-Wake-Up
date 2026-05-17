@@ -11,6 +11,7 @@ local L = core.l10n('WakeUp')
 local dynamicHealth = types.Player.stats.dynamic.health(self)
 local cannotRestGMST = 'sRestMenu4'
 
+local newGame = false
 local inBed = false
 local pendingMenuOpen = false
 local pendingMenuClose = false
@@ -94,6 +95,10 @@ local function charGenCheck()
 
 	if not charGenFinished then
 		async:newUnsavableSimulationTimer(1, charGenCheck)
+	elseif newGame then
+		newGame = false
+		hasSavedInBed = true
+		types.Player.sendMenuEvent(self, 'wu_doSave')
 	end
 end
 
@@ -136,6 +141,9 @@ return {
 		UiModeChanged = UiModeChanged,
 		wu_showMessage = wu_showMessage,
 		wu_initCharGenCheck = charGenCheck,
+		wu_newGame = function ()
+			newGame = true
+		end,
 		wu_inBed = function()
 			inBed = true
 		end,

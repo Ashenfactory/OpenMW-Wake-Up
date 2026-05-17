@@ -86,6 +86,10 @@ local function onLoad(data)
 	deadActors = data.deadActors
 end
 
+local function onNewGame()
+	player:sendEvent('wu_newGame')
+end
+
 local function onPlayerAdded(data)
 	player = data
 	gv = world.mwscript.getGlobalVariables(player)
@@ -103,7 +107,8 @@ return {
 	engineHandlers = {
 		onLoad = onLoad,
 		onSave = onSave,
-		onPlayerAdded = onPlayerAdded
+		onPlayerAdded = onPlayerAdded,
+		onNewGame = onNewGame,
 	},
 	eventHandlers = {
 		wu_setCharGen = setCharGen
