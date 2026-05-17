@@ -3,14 +3,28 @@ local menu = require('openmw.menu')
 
 local L = core.l10n('WakeUp')
 
-local function cleanSaves(allowQuicksave)
+local function cleanSaves()
 	local saveDir = menu.getCurrentSaveDir()
+	local latestAutoSave = nil
+	local saveName
 
 	if not saveDir then return end
 
-	for save, _ in pairs(menu.getSaves(saveDir)) do
-		if save == 'Autosave.omwsave' or (not allowQuicksave and (save == 'Quicksave.omwsave' or string.find(save, '^Quicksave %- %d*%.omwsave$'))) then
+	for save, info in pairs(menu.getSaves(saveDir)) do
+		if save == 'Quicksave.omwsave' or string.find(save, '^Quicksave %- %d*%.omwsave$') then
 			menu.deleteGame(saveDir, save)
+		elseif save == 'Autosave.omwsave' or string.find(save, '^Autosave %- %d*%.omwsave$') then
+			if not saveName then
+				latestAutoSave = info
+				saveName = save
+			elseif latestAutoSave.creationTime < info.creationTime then
+				menu.deleteGame(saveDir, latestSave)
+
+				latestAutoSave = info
+				saveName = save
+			else
+				menu.deleteGame(saveDir, save)
+			end
 		end
 	end
 end
@@ -33,8 +47,8 @@ local function loadLatestSave()
 	local saveName
 
 	for key, data in pairs(menu.getSaves(saveDir)) do
-		if not latestSave or save.creationTime > latestSave.creationTime then
-			latestSave = save
+		if not latestSave or data.creationTime > latestSave.creationTime then
+			latestSave = data
 			saveName = key
 		end
 	end	

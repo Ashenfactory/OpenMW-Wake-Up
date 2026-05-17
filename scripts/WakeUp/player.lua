@@ -40,11 +40,11 @@ local function UiModeChanged(data)
 			restStart = core.getGameTime()
 		end
 
-		if charGenFinished and not data.newMode and data.oldMode == 'Rest' then
+		if not data.newMode and data.oldMode == 'Rest' then
 			local newHealth = dynamicHealth.current
 			local newHealthMax = dynamicHealth.base + dynamicHealth.modifier
 
-			if restStart < core.getGameTime() then
+			if charGenFinished and (restStart < core.getGameTime()) then
 				if (newHealth == newHealthMax or newHealth >= startHealthCurrent) then
 					if not hasSavedInBed then
 						hasSavedInBed = true
@@ -58,6 +58,7 @@ local function UiModeChanged(data)
 
 			inBed = false
 		end
+
 	elseif data.newMode == 'Rest' and not data.oldMode then
 		ui.showMessage(core.getGMST(cannotRestGMST), { showInDialogue = false} )
 	end
@@ -97,10 +98,6 @@ local function charGenCheck()
 end
 
 local function onSave()
-	if hasSavedInBed then
-		types.Player.sendMenuEvent(self, 'wu_cleanSaves', true)
-	end
-
 	return {
 		charGenFinished = charGenFinished,
 		hasSavedInBed = hasSavedInBed
