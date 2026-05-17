@@ -1,4 +1,4 @@
-self = require('openmw.self')
+local self = require('openmw.self')
 local iUI = require('openmw.interfaces').UI
 local ui = require('openmw.ui')
 local core = require('openmw.core')
@@ -9,6 +9,7 @@ local types = require('openmw.types')
 local restStart = core.getGameTime()
 local L = core.l10n('WakeUp')
 local dynamicHealth = types.Player.stats.dynamic.health(self)
+local startHealthCurrent = dynamicHealth.current
 local cannotRestGMST = 'sRestMenu4'
 
 local newGame = false
@@ -37,8 +38,9 @@ local function UiModeChanged(data)
 		if data.arg then
 			inBed = true
 			restStart = core.getGameTime()
+			startHealthCurrent = dynamicHealth.current
 		else
-			ui.showMessage(core.getGMST(cannotRestGMST), { showInDialogue = false} )
+			ui.showMessage(core.getGMST(cannotRestGMST), { showInDialogue = false})
 		end
 
 	elseif inBed and not data.newMode and data.oldMode == 'Rest' then
@@ -47,13 +49,10 @@ local function UiModeChanged(data)
 
 		if charGenFinished and (restStart < core.getGameTime()) then
 			if (newHealth == newHealthMax or newHealth >= startHealthCurrent) then
-				if not hasSavedInBed then
-					hasSavedInBed = true
-				end
-
+				hasSavedInBed = true
 				types.Player.sendMenuEvent(self, 'wu_doSave')
 			else
-				ui.showMessage(L('save_failed'), { showInDialogue = false} )
+				ui.showMessage(L('save_failed'), { showInDialogue = false})
 			end
 		end
 

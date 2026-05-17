@@ -2,8 +2,7 @@ local types = require("openmw.types")
 local Activation = require("openmw.interfaces").Activation
 local core = require("openmw.core")
 local world = require("openmw.world")
-
-local noSleepGMST = "sNotifyMessage64"
+local noSleepGMST = core.getGMST("sNotifyMessage64")
 local deadActors = {}
 local player = world.players[1]
 local gv = world.mwscript.getGlobalVariables(player)
@@ -65,7 +64,7 @@ local function activateBed(object, actor)
 	local bedScripts = { bed_standard = true, chargenbed = true }
 
 	if bedScripts[scrName] and canUseBed(object, actor) == false then
-		actor:sendEvent("wu_showMessage", core.getGMST(noSleepGMST))
+		actor:sendEvent("wu_showMessage", noSleepGMST)
 
 		return false
 	end

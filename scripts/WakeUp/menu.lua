@@ -17,7 +17,7 @@ local function cleanSaves()
 			if not saveName then
 				latestAutoSave = info
 				saveName = save
-			elseif latestAutoSave.creationTime < info.creationTime then
+			elseif latestAutoSave and latestAutoSave.creationTime < info.creationTime then
 				menu.deleteGame(saveDir, saveName)
 
 				latestAutoSave = info
@@ -51,7 +51,7 @@ local function loadLatestSave()
 			latestSave = data
 			saveName = key
 		end
-	end	
+	end
 
 	if latestSave then
 		menu.loadGame(saveDir, saveName)
