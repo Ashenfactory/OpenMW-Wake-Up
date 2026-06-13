@@ -6,6 +6,7 @@ local noSleepGMST = core.getGMST("sNotifyMessage64")
 local deadActors = {}
 local player = world.players[1]
 local gv = world.mwscript.getGlobalVariables(player)
+local lastCell = nil
 
 local function isInFaction(factionId, actor)
 	if types.NPC.isExpelled(actor, factionId) then
@@ -42,9 +43,9 @@ local function canUseBed(bed, actor)
 		local ownerNPCRecord = types.NPC.record(bed.owner.recordId)
 		local ownerRef
 
-		for index, actor in ipairs(world.activeActors) do
-			if actor.recordId == ownerNPCRecord.id then
-				ownerRef = actor
+		for _, activeActor in ipairs(world.activeActors) do
+			if activeActor.recordId == ownerNPCRecord.id then
+				ownerRef = activeActor
 			end
 		end
 
@@ -71,6 +72,16 @@ local function activateBed(object, actor)
 end
 
 Activation.addHandlerForType(types.Activator, activateBed)
+
+local function onUpdate()
+	local currentCell = player.cell
+
+	if currentCell == lastCell then return end
+
+	lastCell = currentCell
+
+	player:sendEvent('wu_changeCell', currentCell.id:lower())
+end
 
 local function setCharGen(data)
 	gv.CharGenState = data.value
@@ -99,13 +110,18 @@ local function onSave()
 end
 
 return {
+	interfaceName = "WakeUp",
+	interface = {
+		version = 1
+	},
 	engineHandlers = {
+		onUpdate= onUpdate,
 		onLoad = onLoad,
 		onSave = onSave,
 		onPlayerAdded = onPlayerAdded,
-		onNewGame = onNewGame,
+		onNewGame = onNewGame
 	},
 	eventHandlers = {
 		wu_setCharGen = setCharGen
-	}
+	},
 }

@@ -6,6 +6,8 @@ local input = require('openmw.input')
 local async = require('openmw.async')
 local types = require('openmw.types')
 
+require('scripts.WakeUp.config')
+
 local restStart = core.getGameTime()
 local L = core.l10n('WakeUp')
 local dynamicHealth = types.Player.stats.dynamic.health(self)
@@ -16,8 +18,12 @@ local newGame = false
 local inBed = false
 local pendingMenuOpen = false
 local pendingMenuClose = false
+local visitedCells = {}
+
+-- Player flags
 local charGenFinished = false
 local hasSavedInBed = false
+local inDanger = false
 
 local function UiModeChanged(data)
 	if data.newMode == 'MainMenu' then
@@ -50,7 +56,7 @@ local function UiModeChanged(data)
 		if charGenFinished and (restStart < core.getGameTime()) then
 			if (newHealth == newHealthMax or newHealth >= startHealthCurrent) then
 				hasSavedInBed = true
-				types.Player.sendMenuEvent(self, 'wu_doSave')
+				types.Player.sendMenuEvent(self, 'wu_doSave', { inDanger = inDanger })
 			else
 				ui.showMessage(L('save_failed'), { showInDialogue = false})
 			end
@@ -65,9 +71,27 @@ local function wu_showMessage(message)
 end
 
 local function quickSaveHandler()
+	types.Player.sendMenuEvent(self, 'wu_cleanQuickSaves')
+
 	if not pendingMenuOpen and charGenFinished then
 		pendingMenuOpen = true
 		core.sendGlobalEvent('wu_setCharGen', { value = -2 })
+	end
+end
+
+local function onQuestUpdate(questId, stage)
+	if not ENABLE_SOFTLOCK_PREVENTION then return end
+
+	local softlockableQuest = SOFTLOCKABLE_QUESTS[questId]
+
+	if softlockableQuest then
+		if not inDanger and stage >= softlockableQuest.start then
+			inDanger = true
+
+			types.Player.sendMenuEvent(self, 'wu_doSafetySave')
+		elseif inDanger and stage >= softlockableQuest.stop then
+			inDanger = false
+		end
 	end
 end
 
@@ -93,15 +117,48 @@ local function charGenCheck()
 	elseif newGame then
 		newGame = false
 		hasSavedInBed = true
-		types.Player.sendMenuEvent(self, 'wu_doSave')
+		types.Player.sendMenuEvent(self, 'wu_doSave', { inDanger = inDanger })
 	end
 end
 
 local function onSave()
 	return {
 		charGenFinished = charGenFinished,
-		hasSavedInBed = hasSavedInBed
+		hasSavedInBed = hasSavedInBed,
+		visitedCells = visitedCells
 	}
+end
+
+local function onLoadSaveClear()
+	if hasSavedInBed then
+		types.Player.sendMenuEvent(self, 'wu_cleanSaves')
+	end
+end
+
+local function changeCell(newCell)
+	if not ENABLE_AUTOSAVE_CELLS then return end
+
+	local autosaveCell = false
+
+	for _, cell in ipairs(AUTOSAVE_CELLS) do
+		if cell == newCell then
+			autosaveCell = true
+			break
+		end
+	end
+
+	if autosaveCell then
+		if visitedCells then
+			for _, cell in ipairs(visitedCells) do
+				if cell == newCell then
+					return
+				end
+			end
+		end
+
+		table.insert(visitedCells, newCell)
+		types.Player.sendMenuEvent(self, 'wu_doSave', { inDanger = inDanger })
+	end
 end
 
 local function onLoad(data)
@@ -113,33 +170,60 @@ local function onLoad(data)
 	charGenFinished = data.charGenFinished
 	hasSavedInBed = data.hasSavedInBed
 
+	if ENABLE_SOFTLOCK_PREVENTION then
+		print('softlock prevention active')
+		for quest, stage in pairs(SOFTLOCKABLE_QUESTS) do
+			local playerQuest = types.Player.quests(self)[quest]
+
+			print('checking for ', quest)
+			print(playerQuest)
+
+			if (playerQuest) then
+				print(playerQuest.stage, stage.start, stage.stop)
+			end
+
+			if playerQuest and playerQuest.stage >= stage.start and playerQuest.stage < stage.stop then
+				inDanger = true
+			end
+		end
+	end
+
+	if data.visitedCells == nil then
+		data.visitedCells = {}
+	end
+
+	visitedCells = data.visitedCells
+
 	if not charGenFinished then
 		charGenCheck()
 	else
 		core.sendGlobalEvent('wu_setCharGen', { value = -1 })
 	end
 
-	if hasSavedInBed then
-		types.Player.sendMenuEvent(self, 'wu_cleanSaves')
-	else
+	if not hasSavedInBed then
 		iUI.showInteractiveMessage(L('startup_message'))
 	end
+
+	async:newUnsavableSimulationTimer(ONLOAD_SAVE_CLEAR_TIMER, onLoadSaveClear)
 end
 
 return {
 	engineHandlers = {
 		onFrame = onFrame,
 		onSave = onSave,
-		onLoad = onLoad
+		onLoad = onLoad,
+		onQuestUpdate = onQuestUpdate
 	},
 	eventHandlers = {
 		UiModeChanged = UiModeChanged,
+		wu_changeCell = changeCell,
 		wu_showMessage = wu_showMessage,
 		wu_initCharGenCheck = charGenCheck,
 		wu_newGame = function()
 			newGame = true
 		end,
 		Died = function()
+			types.Player.sendMenuEvent(self, 'wu_cleanSaves')
 			iUI.showInteractiveMessage(L('wake_up'))
 		end
 	}

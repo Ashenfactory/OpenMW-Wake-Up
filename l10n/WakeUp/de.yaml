@@ -1,7 +1,8 @@
-name: Wake Up
-description: Verhindert Speichern und Rasten ohne die Nutzung eines Betts.
+name: "Wake Up"
+description: "Verhindert Speichern und Rasten ohne die Nutzung eines Betts."
 
 save_name: "[zZz] Aufwachen"
+save_name: "[zZz] Rückkehr"
 wake_up: "Du fühlst, wie dein Bewusstsein langsam zurückkehrt, als sich der Schleier des Schlafs lüftet.\nEs war nur ein böser Traum, eine schreckliche Vorahnung einer möglichen Zukunft.\nMit einem Ruck wirfst du den Albtraum ab und wachst auf.\n\nWach auf!"
-save_failed: Du wachst benommen auf. Dein Schlaf war rastlos und du fühlst dich kein bisschen besser als zuvor...
+save_failed: "Du wachst benommen auf. Dein Schlaf war rastlos und du fühlst dich kein bisschen besser als zuvor..."
 startup_message: "Anscheinend wurde dieser Speicherstand angelegt, bevor \"Wake Up\" aktiviert wurde.\nDamit keine Daten verloren gehen, werden Autosaves und Quicksaves bis zur nächsten Rast in einem Bett nicht gelöscht.\n\nAndere bereits existierende Speicherstände werden nicht gelöscht!"
